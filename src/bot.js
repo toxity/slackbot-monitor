@@ -2,11 +2,20 @@
  * Created by im on 4/24/17.
  */
 'use strict';
-const monitor = require('./monitor/monitor');
-const logger = require('./logger');
+const monitor = require('host-monitor');
+const logger = require('simple-log-manager');
+const moment = require('moment');
 
-const botLogs = logger.create("bot");
-const inputLogs = logger.create("inputs");
+const inputLogs = logger.createFileLogger("inputs", {
+    fileNamePattern: "inputs-<DATE>.log",
+    dir: require('path').join(__dirname, "..", "logs")
+});
+
+const botLogs = logger.createFileLogger("bot", {
+    fileNamePattern: "bot-<DATE>.log",
+    dir: require('path').join(__dirname, "..", "logs")
+});
+
 
 const ISBot = function () {
     this.commands = [];
@@ -34,7 +43,7 @@ const ISBot = function () {
 
         for (const command of this.commands) {
             if (command.name === data.command) {
-                botLogs.error(`Trying to add command ${data.command} againstance url or aliain`);
+                botLogs.error(`Trying to add command ${data.command} againstance url or aliais`);
                 return;
             }
         }
@@ -172,13 +181,14 @@ const defaultCommands = [
             }
 
             let message = `Instances under monitor (name|watcher status|up status):\n`;
-            for (const instance of monitor.instances) {
+            for (const instance of monitor.getItems()) {
                 message += `\n\t${instance.host} (${instance.alias}) | ${instance.getJobStatus()} | ${instance.getUpStatus()} |`;
             }
 
             this.postMessage(message);
         }
     },
+
     {
         command: "status",
         callback: function (host) {
@@ -186,11 +196,11 @@ const defaultCommands = [
                 return this.portWarn("This command requires instance url or alias");
             }
 
-            const instance = monitor.getInstanceByName(this._parseLink(host));
+            const instance = monitor.get(this._parseLink(host));
             if (!instance) {
                 return this.portWarn(`Can't find instance - ${host}`);
             }
-            return this.postMessage(`${instance.host} : \n\t watcher status: ${instance.getJobStatus()} \n\t server status: ${instance.getUpStatus()}`);
+            return this.postMessage(`${instance.host} : \n\t watcher status: ${instance.getJobStatus(true)} \n\t server status: ${instance.getUpStatus()}`);
         }
     },
     {
@@ -236,7 +246,7 @@ const defaultCommands = [
         command: "stop",
         help: `\t stop <host|alias> - stop instance's watcher`,
         callback: function (name) {
-            monitor.toInstance(name, (instance) => {
+            monitor.getAndCall(name, (instance) => {
                 instance.stopJob();
                 this.postMessage(`Job for instance ${instance.host} was stopped`);
             })
@@ -246,18 +256,27 @@ const defaultCommands = [
         command: "start",
         help: `\t start <host|alias> - start instance's watcher`,
         callback: function (name) {
-            monitor.toInstance(name, (instance) => {
+            monitor.getAndCall(name, (instance) => {
                 instance.resumeJob();
                 this.postMessage(`Job for instance ${instance.host} was started`);
             })
         }
     },
+
     {
         command: "ping",
         callback: function () {
             this.postMessage(`pong`);
         }
+    },
+    {
+        command: "time",
+        help: `help - return bot's local time`,
+        callback: function () {
+            this.postMessage(`My local time is - ${moment().format('DD.MM.YYYY hh:mm:ss')}`)
+        }
     }
+
 ];
 
 for (const command of defaultCommands) {

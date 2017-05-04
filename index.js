@@ -2,8 +2,6 @@
  * Created by im on 4/21/17.
  */
 'use strict';
-var path = require("path");
-var path = process.env.OLD ? path.join(__dirname, "lib", "bot.js") :  path.join(__dirname, "src", "bot.js");
 
 if (!process.env.TOKEN) {
     console.error("Token is not specified!");
@@ -15,9 +13,9 @@ if (!process.env.CHANNEL) {
     process.exit(1);
 }
 
-require(path).init({
+require('./lib/bot').init({
     token: process.env.TOKEN,
-    channel: process.env.CHANNEL,
+    channel: process.env.CHANNEL
 });
 
 
