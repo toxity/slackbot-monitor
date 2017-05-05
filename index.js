@@ -19,4 +19,4 @@ require('./lib/bot').init({
 });
 
 
-console.log("Slackbot was started. Chech your slack for details");
+console.log("Slackbot was started. Check your slack for details");
