@@ -1,6 +1,6 @@
 {
   "name": "slackbot-monitor",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "slackbot for monitoring host status",
   "main": "index.js",
   "engines": {
