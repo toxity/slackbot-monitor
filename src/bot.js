@@ -4,6 +4,7 @@
 'use strict';
 const moment = require('moment');
 const monitor = require('host-monitor');
+const slackbots = require('slackbots');
 
 const getLogger = function (name) {
     const manager = require('simple-log-manager');
@@ -56,7 +57,7 @@ const ISBot = function () {
             throw Error("Config for bot is not specified!");
         }
 
-        const SlackBot = require('slackbots');
+        const SlackBot = slackbots;
         this.bot = new SlackBot(config);
         this.channel = config.channel;
 

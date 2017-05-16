@@ -1,16 +1,18 @@
 /**
  * Created by im on 5/5/17.
  */
+const moment = require('moment');
+
 module.exports = [
     {
         command: "help",
-        callback: function (text) {
+        callback: function () {
             let message;
             if (this.commands.length) {
-                message = "My available commands:\n";
+                message = `My available commands:\n`;
                 for (const command of this.commands) {
                     if (command.helpText && command.helpText.length) {
-                        message += `\n ${command.helpText}`;
+                        message += `\n\t ${command.helpText}`;
                     }
                 }
                 return this.postMessage(message);
@@ -20,21 +22,36 @@ module.exports = [
     },
     {
         command: "list",
-        help: `\t list - information about instances under the watch`,
+        help: `list - information about instances under the watch`,
         callback: function () {
             if (!this.monitor.hasItems()) {
                 return this.postWarn("No instances found");
             }
 
-            let message = `Instances under monitor (name|watcher status|up status):\n`;
+            let message = `Instances under monitor:\n`;
             for (const instance of this.monitor.getItems()) {
-                message += `\n\t${instance.host} (${instance.alias}) | ${instance.getJobStatus()} | ${instance.getUpStatus()} |`;
+                message += `\n\t${instance.host} - ${instance.getUpStatus()}`;
             }
 
             this.postMessage(message);
         }
     },
+    {
+        command: "aliases",
+        help: `aliases - information about available aliases`,
+        callback: function () {
+            if (!this.monitor.hasItems()) {
+                return this.postWarn("No instances found");
+            }
 
+            let message = `Available aliases:\n`;
+            for (const instance of this.monitor.getItems()) {
+                message += `\n\t${instance.host} - ${instance.alias}`;
+            }
+
+            this.postMessage(message);
+        }
+    },
     {
         command: "status",
         callback: function (host) {
@@ -46,12 +63,12 @@ module.exports = [
             if (!instance) {
                 return this.postWarn(`Can't find instance - ${host}`);
             }
-            return this.postMessage(`${instance.host} : \n\t watcher status: ${instance.getJobStatus(true)} \n\t server status: ${instance.getUpStatus()}`);
+            return this.postMessage(`${instance.host} : \n\t watcher status: ${instance.getJobStatus(true)} \n\t server status: ${instance.getUpStatus(true)}`);
         }
     },
     {
         command: "add",
-        help: `\t add <host|alias> - add new instance for watching`,
+        help: `add <host|alias> - add new instance for watching`,
         callback: function (host) {
             if (!host) {
                 return this.postWarn("This command requires instance url or alias");
@@ -68,7 +85,7 @@ module.exports = [
     },
     {
         command: "remove",
-        help: `\t remove <host|alias> - remove instance from watching`,
+        help: `remove <host|alias> - remove instance from watching`,
         callback: function (host) {
             if (!host) {
                 return this.postWarn("This command requires instance url or alias");
@@ -81,7 +98,7 @@ module.exports = [
     },
     {
         command: "stop",
-        help: `\t stop <host|alias> - stop instance's watcher`,
+        help: `stop <host|alias> - stop instance's watcher`,
         callback: function (name) {
             this.monitor.getAndCall(name, (instance) => {
                 instance.stopJob();
@@ -91,7 +108,7 @@ module.exports = [
     },
     {
         command: "start",
-        help: `\t start <host|alias> - start instance's watcher`,
+        help: `start <host|alias> - start instance's watcher`,
         callback: function (name) {
             this.monitor.getAndCall(name, (instance) => {
                 instance.resumeJob();
@@ -103,12 +120,12 @@ module.exports = [
     {
         command: "ping",
         callback: function () {
-            this.postMessage(`pong`);
+            this.postMessage("pong");
         }
     },
     {
         command: "time",
-        help: `help - return bot's local time`,
+        help: `time - bot's local time`,
         callback: function () {
             this.postMessage(`My local time is - ${moment().format('DD.MM.YYYY hh:mm:ss')}`)
         }
